@@ -3,13 +3,13 @@ services:
     mysql:
         image: 'mysql/mysql-server:8.0'
         ports:
-            - '${FORWARD_DB_PORT:-3306}:3306'
+            - '${MYSQL_FORWARD_PORT:-3306}:3306'
         environment:
-            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ROOT_PASSWORD: '${MYSQL_PASSWORD}'
             MYSQL_ROOT_HOST: '%'
-            MYSQL_DATABASE: '${DB_DATABASE}'
-            MYSQL_USER: '${DB_USERNAME}'
-            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_DATABASE: '${MYSQL_DATABASE}'
+            MYSQL_USER: '${MYSQL_USERNAME}'
+            MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
             MYSQL_ALLOW_EMPTY_PASSWORD: 1
         volumes:
             - 'local-mysql:/var/lib/mysql'
@@ -21,62 +21,86 @@ services:
             - CMD
             - mysqladmin
             - ping
-            - '-p${DB_PASSWORD}'
+            - '-p${MYSQL_PASSWORD}'
             retries: 3
             timeout: 5s
-    pgsql:
-        image: 'postgres:15'
-        ports:
-            - '${FORWARD_DB_PORT:-5432}:5432'
-        environment:
-            PGPASSWORD: '${DB_PASSWORD:-secret}'
-            POSTGRES_DB: '${DB_DATABASE}'
-            POSTGRES_USER: '${DB_USERNAME}'
-            POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
-        volumes:
-            - 'local-pgsql:/var/lib/postgresql/data'
-            - './pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
-        networks:
-            - local
-        healthcheck:
-            test: ["CMD", "pg_isready", "-q", "-d", "${DB_DATABASE}", "-U", "${DB_USERNAME}"]
-            retries: 3
-            timeout: 5s
-    redis:
-        image: 'redis:alpine'
-        ports:
-            - '${FORWARD_REDIS_PORT:-6379}:6379'
-        volumes:
-            - 'local-redis:/data'
-        networks:
-            - local
-        healthcheck:
-            test: ["CMD", "redis-cli", "ping"]
-            retries: 3
-            timeout: 5s
-    mariadb:
-        image: 'mariadb:10'
-        ports:
-            - '${FORWARD_DB_PORT:-3306}:3306'
-        environment:
-            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ROOT_HOST: "%"
-            MYSQL_DATABASE: '${DB_DATABASE}'
-            MYSQL_USER: '${DB_USERNAME}'
-            MYSQL_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
-        volumes:
-            - 'local-mariadb:/var/lib/mysql'
-            - './mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
-        networks:
-            - local
-        healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
-            retries: 3
-            timeout: 5s
+    # mariadb:
+    #     image: 'mariadb:10'
+    #     ports:
+    #         - '${MYSQL_FORWARD_PORT:-3306}:3306'
+    #     environment:
+    #         MYSQL_ROOT_PASSWORD: '${MYSQL_PASSWORD}'
+    #         MYSQL_ROOT_HOST: "%"
+    #         MYSQL_DATABASE: '${MYSQL_DATABASE}'
+    #         MYSQL_USER: '${MYSQL_USERNAME}'
+    #         MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
+    #         MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    #     volumes:
+    #         - 'local-mariadb:/var/lib/mysql'
+    #         - './mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+    #     networks:
+    #         - local
+    #     healthcheck:
+    #         test: ["CMD", "mysqladmin", "ping", "-p${MYSQL_PASSWORD}"]
+    #         retries: 3
+    #         timeout: 5s
+    # pgsql:
+    #     image: 'postgres:15'
+    #     ports:
+    #         - '${PG_FORWARD_PORT:-5432}:5432'
+    #     environment:
+    #         PGPASSWORD: '${PG_PASSWORD:-secret}'
+    #         POSTGRES_DB: '${PG_DATABASE}'
+    #         POSTGRES_USER: '${PG_USERNAME}'
+    #         POSTGRES_PASSWORD: '${PG_PASSWORD:-secret}'
+    #     volumes:
+    #         - 'local-pgsql:/var/lib/postgresql/data'
+    #         - './pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
+    #     networks:
+    #         - local
+    #     healthcheck:
+    #         test: ["CMD", "pg_isready", "-q", "-d", "${PG_DATABASE}", "-U", "${PG_USERNAME}"]
+    #         retries: 3
+    #         timeout: 5s
+    # redis:
+    #     image: 'redis:alpine'
+    #     ports:
+    #         - '${REDIS_FORWARD_PORT:-6379}:6379'
+    #     volumes:
+    #         - 'local-redis:/data'
+    #     networks:
+    #         - local
+    #     healthcheck:
+    #         test: ["CMD", "redis-cli", "ping"]
+    #         retries: 3
+    #         timeout: 5s
+    # mongodb:
+    #     image: mongo:latest
+    #     ports:
+    #         - '${FORWARD_MONGODB_PORT:-27017}:27017'
+    #     environment:
+    #         MONGO_INITDB_ROOT_USERNAME: '${MONGODB_USERNAME}'
+    #         MONGO_INITDB_ROOT_PASSWORD: '${MONGODB_PASSWORD}'
+    #         MONGO_INITDB_DATABASE: '${MONGODB_DATABASE}'
+    #     volumes:
+    #         - 'local-mongodb:/data/db'
+    #     networks:
+    #         - local
+    #     healthcheck:
+    #         test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')", "-u${MONGODB_USERNAME}", "-p${MONGODB_PASSWORD}"]
+    #         retries: 3
+    #         timeout: 5s
 networks:
     local:
         driver: bridge
 volumes:
     local-mysql:
         driver: local
+    # local-mariadb:
+    #     driver: local
+    # local-pgsql:
+    #     driver: local
+    # local-redis:
+    #     driver: local
+    # local-mongodb:
+    #     driver: local
