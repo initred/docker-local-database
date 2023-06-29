@@ -2,7 +2,7 @@
 
 A repository for fast database execution with dockers in a local development environment.
 
-## Support Database
+## Support Databases
 
 - [MySQL](https://www.mysql.com/) [Default]
 - [MariaDB](https://mariadb.org/)
